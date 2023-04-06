@@ -73,7 +73,6 @@ module.exports = {
                             voiceChannelID: voiceChannel.channelId,
                             disconectInterval: function (stop) {
                                 var timer = setTimeout(function () {
-                                    console.log("disconect timer");
                                     (0, functions_1.disconectBot)(bot, guildID);
                                 }, (5 * 1000));
                                 if (stop) {
