@@ -37,7 +37,7 @@ module.exports = {
                 disconectInterval: (stop?: boolean) => {
                     var timer = setTimeout(() => {
                             disconectBot(bot, guildID)
-                        }, (5 * 1000))
+                        }, (30 * 1000))
                     if (stop) {
                         clearTimeout(timer)
                     }
