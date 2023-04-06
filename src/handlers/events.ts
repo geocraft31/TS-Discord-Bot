@@ -1,23 +1,31 @@
-import Path = require("path")
-import fs = require("fs")
-import { Bot, Event } from "../types"
+import { Bot, Event } from "./../types"
+import { getFiles, triggerEventHandler } from "../util/functions"
+import Discord = require("discord.js")
 
-const eventsPath = Path.resolve(__dirname, "./../events/")
-
-module.exports = (bot:Bot) => {
-    const events = fs.readdirSync(eventsPath).filter(f => f.endsWith(".js"))
+module.exports = (bot: Bot, reload: boolean) => {
     
-    events.forEach(eventName => {
-        const event: Event = require(eventsPath + `/${eventName}`)
+    let events = getFiles("./events/", ".js")
+
+    if (events.length === 0 ){
+        console.log("No events to load")
+    }
+
+    events.forEach((f, i) => {
+        
+        if (reload)
+            delete require.cache[require.resolve(`../events/${f}`)]
+
+        const event: Event = require(`../events/${f}`)
         bot.events.set(event.name, event)
 
-        console.log(`Event: \u001b[33m ${event.name} \u001b[0m ~ \u001b[32m Loaded \u001b[0m`)
+        console.log(`Event: \u001B[33m ${event.name} \u001b[0m ~ \u001B[32m Loaded \u001b[0m`)
     })
-    
-    initEvents(bot)
+
+    if (!reload)
+        initEvents(bot)
 }
 
-const initEvents = (bot: Bot) => {
+function initEvents(bot: Bot) {
     
     const { client } = bot
 
@@ -25,20 +33,18 @@ const initEvents = (bot: Bot) => {
         triggerEventHandler(bot, "ready")
     })
 
-    client.on("messageCreate", (message) => {
+    client.on("messageCreate", (message: Discord.Message) => {
         triggerEventHandler(bot, "messageCreate", message)
     })
 
-}
+    client.on("guildCreate", (guild: Discord.Guild) => {
+        triggerEventHandler(bot, "guildCreate", guild)
+    })
 
-const triggerEventHandler = (bot: Bot, eventName: string, ...args) => {
-    const { events } = bot
-    try {
-        if (events.has(eventName))
-            events.get(eventName).run(bot, ...args)
-        else
-            throw new Error(`Event ${eventName} does not exist`)
-    } catch (err) {
-        console.error(err)
-    }
+    client.on(Discord.Events.InteractionCreate, (interaction: Discord.Interaction) => {
+        if (!interaction.isChatInputCommand()) return
+        triggerEventHandler(bot, "interactionCreate", interaction)
+    })
+
+
 }

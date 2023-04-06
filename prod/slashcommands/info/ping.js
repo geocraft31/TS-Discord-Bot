@@ -36,53 +36,36 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var guildData = require("./../data/guilds.json");
-var functions_1 = require("./../util/functions");
+var discord_js_1 = require("discord.js");
 module.exports = {
-    name: "messageCreate",
-    run: function (bot, message) { return __awaiter(void 0, void 0, void 0, function () {
-        var prefix, prefix, args, cmdstr, command, member, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (Object.keys(guildData).includes(message.guildId)) {
-                        prefix = guildData[message.guildId].prefix;
-                    }
-                    else {
-                        prefix = bot.prefix;
-                    }
-                    if (!message.guild)
-                        return [2];
-                    if (message.author.bot)
-                        return [2];
-                    if (!message.content.startsWith(prefix))
-                        return [2];
-                    args = message.content.slice(prefix.length).trim().split(" ");
-                    cmdstr = args.shift().toLowerCase();
-                    command = bot.commands.get(cmdstr);
-                    if (!command)
-                        return [2];
-                    member = message.member;
-                    if (command.devOnly && !bot.owners.includes(member.id)) {
-                        return [2, message.reply("This command is only available to the bot owners")];
-                    }
-                    if (command.permissions && member.permissions.missing(command.permissions).length !== 0) {
-                        return [2, message.reply("You do not have permissions to use this command")];
-                    }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    (0, functions_1.logger)("Command", command.name, args);
-                    return [4, command.run(bot, message, args)];
-                case 2:
-                    _a.sent();
-                    return [3, 4];
-                case 3:
-                    err_1 = _a.sent();
-                    console.error(err_1);
-                    return [3, 4];
-                case 4: return [2];
-            }
+    data: new discord_js_1.SlashCommandBuilder()
+        .setName("ping")
+        .setDescription("Replies with Pong!")
+        .setDefaultMemberPermissions(discord_js_1.PermissionFlagsBits.Administrator),
+    execute: function (interaction, bot) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, msg, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        client = bot.client;
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 4, , 5]);
+                        return [4, interaction.reply({ content: "Calculating Ping...", fetchReply: true, ephemeral: true })];
+                    case 2:
+                        msg = _a.sent();
+                        return [4, interaction.editReply({ content: "Bot Latency: `".concat(msg.createdTimestamp - interaction.createdTimestamp, "ms`, Wbsocket Latency: `").concat(client.ws.ping, "ms`"), ephemeral: true })];
+                    case 3:
+                        _a.sent();
+                        return [3, 5];
+                    case 4:
+                        err_1 = _a.sent();
+                        console.log("Something Went Wrong => ", err_1);
+                        return [3, 5];
+                    case 5: return [2];
+                }
+            });
         });
-    }); }
+    }
 };

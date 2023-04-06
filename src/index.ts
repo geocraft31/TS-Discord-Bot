@@ -1,29 +1,36 @@
 import Discord = require("discord.js")
 import { Bot } from "./types"
-const { initEvents } = require("./handlers/events")
-require("dotenv").config({path: "../.env"})
 
+require("dotenv").config({path: "./../.env"})
 
 const client = new Discord.Client({
     intents: [
-        "MessageContent",
+        "Guilds",
         "GuildMessages",
-        "Guilds"
+        "MessageContent",
+        "GuildMembers",
+        "GuildVoiceStates"
     ]
 })
 
-let bot: Bot = {
+let bot = {
     client,
+    audio: new Discord.Collection,
     prefix: "?",
     owners: ["581529736396931072"],
-    events: new Discord.Collection(),
-    commands: new Discord.Collection()
+    events: new Discord.Collection,
+    commands: new Discord.Collection,
+    slashCommands: new Discord.Collection
 }
 
-const loadEvents = (bot: Bot) => require("./handlers/events")(bot)
-loadEvents(bot)
+const loadEvents = (bot, reload: boolean) => require("./handlers/events")(bot, reload)
+loadEvents(bot, false)
 
-const loadCommands = (bot: Bot) => require("./handlers/commands")(bot)
-loadCommands(bot)
+const loadCommands = (bot, reload: boolean) => require("./handlers/commands")(bot, reload)
+loadCommands(bot, false)
+
+const loadSlashCommands = (bot, reload: boolean) => require("./handlers/slashcommands")(bot, reload)
+loadSlashCommands(bot, false)
+
 
 client.login(process.env.TOKEN)

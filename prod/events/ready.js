@@ -39,11 +39,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 module.exports = {
     name: "ready",
     run: function (bot) { return __awaiter(void 0, void 0, void 0, function () {
-        var client;
         return __generator(this, function (_a) {
-            client = bot.client;
-            console.log("Logged in as: \u001B[32m ".concat(client.user.tag, " \u001B[0m"));
-            return [2 /*return*/];
+            console.log("Logged in as: \u001B[36m ".concat(bot.client.user.tag, "\u001B[0m \n"));
+            bot.client.user.setActivity("?help");
+            return [2];
         });
     }); }
 };

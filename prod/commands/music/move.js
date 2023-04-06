@@ -36,53 +36,38 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var guildData = require("./../data/guilds.json");
-var functions_1 = require("./../util/functions");
 module.exports = {
-    name: "messageCreate",
-    run: function (bot, message) { return __awaiter(void 0, void 0, void 0, function () {
-        var prefix, prefix, args, cmdstr, command, member, err_1;
+    name: "move",
+    category: "music",
+    permissions: [],
+    alias: [],
+    description: "Moves a song to another position",
+    example: "move <position of the song> <new position>",
+    devOnly: false,
+    run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
+        var audio, songs, songIndex, songPos, oldSong, movedSong;
         return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (Object.keys(guildData).includes(message.guildId)) {
-                        prefix = guildData[message.guildId].prefix;
-                    }
-                    else {
-                        prefix = bot.prefix;
-                    }
-                    if (!message.guild)
-                        return [2];
-                    if (message.author.bot)
-                        return [2];
-                    if (!message.content.startsWith(prefix))
-                        return [2];
-                    args = message.content.slice(prefix.length).trim().split(" ");
-                    cmdstr = args.shift().toLowerCase();
-                    command = bot.commands.get(cmdstr);
-                    if (!command)
-                        return [2];
-                    member = message.member;
-                    if (command.devOnly && !bot.owners.includes(member.id)) {
-                        return [2, message.reply("This command is only available to the bot owners")];
-                    }
-                    if (command.permissions && member.permissions.missing(command.permissions).length !== 0) {
-                        return [2, message.reply("You do not have permissions to use this command")];
-                    }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    (0, functions_1.logger)("Command", command.name, args);
-                    return [4, command.run(bot, message, args)];
-                case 2:
-                    _a.sent();
-                    return [3, 4];
-                case 3:
-                    err_1 = _a.sent();
-                    console.error(err_1);
-                    return [3, 4];
-                case 4: return [2];
+            try {
+                audio = bot.audio;
+                songs = audio.get(message.guildId).songs;
+                songIndex = Number(args[0]);
+                songPos = Number(args[1]);
+                if (Number.isNaN(songIndex) === true || Number.isNaN(songPos) === true) {
+                    return [2, message.reply("Please enter two numbers")];
+                }
+                if (songIndex > songs.size || songPos > songs.size) {
+                    return [2, message.reply("The number is too big")];
+                }
+                oldSong = songs.get(songPos);
+                movedSong = songs.get(songIndex);
+                songs.set(songPos, movedSong);
+                songs.set(songIndex, oldSong);
+                message.reply("song moved");
             }
+            catch (_b) {
+                message.reply("no song");
+            }
+            return [2];
         });
     }); }
 };

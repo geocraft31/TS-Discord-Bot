@@ -36,52 +36,56 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var guildData = require("./../data/guilds.json");
-var functions_1 = require("./../util/functions");
+var Builder = require("@discordjs/builders");
 module.exports = {
-    name: "messageCreate",
-    run: function (bot, message) { return __awaiter(void 0, void 0, void 0, function () {
-        var prefix, prefix, args, cmdstr, command, member, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+    name: "queue",
+    category: "music",
+    permissions: [],
+    alias: ["q"],
+    description: "Displays all of the songs added to the bot",
+    example: "queue",
+    devOnly: false,
+    run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
+        var client, audio, songs, _a, embed, embedDescription, firstSong, firstSongField, length, length, i, song;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
-                    if (Object.keys(guildData).includes(message.guildId)) {
-                        prefix = guildData[message.guildId].prefix;
+                    client = bot.client, audio = bot.audio;
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 2, , 4]);
+                    songs = audio.get(message.guildId).songs;
+                    return [3, 4];
+                case 2:
+                    _a = _b.sent();
+                    return [4, message.reply("No songs in the playlist, try adding some music before running this command")];
+                case 3:
+                    _b.sent();
+                    return [2];
+                case 4:
+                    embed = new Builder.EmbedBuilder();
+                    embedDescription = "";
+                    firstSong = songs.first();
+                    firstSongField = "[".concat(firstSong.title, "](").concat(firstSong.url, ") \n ").concat(firstSong.channel, " [").concat(firstSong.duration, "]");
+                    embed.setAuthor({ name: "Playlist" });
+                    embed.setThumbnail(firstSong.thumbnail);
+                    embed.setColor(1146986);
+                    embedDescription += "**Now playing:** \n".concat(firstSongField, " \n\n");
+                    if (songs.size > 25) {
+                        length = 24;
                     }
                     else {
-                        prefix = bot.prefix;
+                        length = songs.size;
                     }
-                    if (!message.guild)
-                        return [2];
-                    if (message.author.bot)
-                        return [2];
-                    if (!message.content.startsWith(prefix))
-                        return [2];
-                    args = message.content.slice(prefix.length).trim().split(" ");
-                    cmdstr = args.shift().toLowerCase();
-                    command = bot.commands.get(cmdstr);
-                    if (!command)
-                        return [2];
-                    member = message.member;
-                    if (command.devOnly && !bot.owners.includes(member.id)) {
-                        return [2, message.reply("This command is only available to the bot owners")];
+                    for (i = 1; i < length; i++) {
+                        song = songs.get(i);
+                        embedDescription += "".concat(i, " - [").concat(song.title, "](").concat(song.url, ") \n ").concat(song.channel, " [").concat(song.duration, "] \n\n");
                     }
-                    if (command.permissions && member.permissions.missing(command.permissions).length !== 0) {
-                        return [2, message.reply("You do not have permissions to use this command")];
-                    }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    (0, functions_1.logger)("Command", command.name, args);
-                    return [4, command.run(bot, message, args)];
-                case 2:
-                    _a.sent();
-                    return [3, 4];
-                case 3:
-                    err_1 = _a.sent();
-                    console.error(err_1);
-                    return [3, 4];
-                case 4: return [2];
+                    embed.setDescription(embedDescription);
+                    return [4, message.channel.send({ embeds: [embed] })];
+                case 5:
+                    _b.sent();
+                    return [2];
             }
         });
     }); }

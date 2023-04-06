@@ -36,20 +36,157 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var Discord = require("discord.js");
+var Builder = require("@discordjs/builders");
+var Voice = require("@discordjs/voice");
+var Play = require("play-dl");
+var functions_1 = require("../../util/functions");
 module.exports = {
-    name: "ping",
-    category: "info",
-    devOnly: true,
-    run: function (bot, message) {
-        var args = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            args[_i - 2] = arguments[_i];
-        }
-        return __awaiter(void 0, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                message.reply("pong");
-                return [2 /*return*/];
-            });
+    name: "play",
+    category: "music",
+    permissions: [],
+    alias: ["p"],
+    description: "Plays the song given",
+    example: "play <song>",
+    devOnly: false,
+    run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
+        var audio, client, userID, voiceChannel, guildID, settings, GuildAudio, audioPlayer, voiceConnection, subscription, prompt, playlist_raw, playlist, raw_data, yt_info, video_data, songs, raw_data, yt_info, video_data, songs, song, song, embed_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    audio = bot.audio, client = bot.client;
+                    userID = message.author.id;
+                    voiceChannel = message.member.voice;
+                    guildID = message.guildId;
+                    if (!audio.has(guildID)) {
+                        settings = {
+                            player: new Voice.AudioPlayer({
+                                behaviors: {
+                                    noSubscriber: Voice.NoSubscriberBehavior.Pause
+                                },
+                                debug: true
+                            }),
+                            textChannelID: message.channelId,
+                            songs: new Discord.Collection,
+                            loopqueue: false,
+                            voiceChannel: voiceChannel,
+                            voiceChannelID: voiceChannel.channelId,
+                            disconectInterval: function (stop) {
+                                var timer = setTimeout(function () {
+                                    console.log("disconect timer");
+                                    (0, functions_1.disconectBot)(bot, guildID);
+                                }, (5 * 1000));
+                                if (stop) {
+                                    clearTimeout(timer);
+                                }
+                            }
+                        };
+                        audio.set(guildID, settings);
+                        audio.get(guildID).player.on("stateChange", function (oldState, newState) {
+                            (0, functions_1.triggerEventHandler)(bot, "stateChange", newState, guildID);
+                        });
+                    }
+                    GuildAudio = audio.get(guildID);
+                    audioPlayer = GuildAudio.player;
+                    if (voiceChannel.channelId == null) {
+                        return [2, message.reply("Enter on a voice channel PUSSY")];
+                    }
+                    if (GuildAudio.voiceConnection == undefined) {
+                        voiceConnection = Voice.joinVoiceChannel({
+                            channelId: voiceChannel.channelId,
+                            guildId: guildID,
+                            debug: true,
+                            adapterCreator: voiceChannel.guild.voiceAdapterCreator
+                        });
+                        voiceConnection.on("stateChange", function (oldState, newState) {
+                            (0, functions_1.logger)("Voice Connection change", newState.status);
+                        });
+                        GuildAudio.voiceConnection = voiceConnection;
+                    }
+                    subscription = GuildAudio.voiceConnection.subscribe(audioPlayer);
+                    GuildAudio.subscription = subscription;
+                    prompt = args.join(' ');
+                    if (!prompt.includes("youtube.com")) return [3, 6];
+                    if (!prompt.includes("playlist")) return [3, 3];
+                    return [4, Play.playlist_info(prompt)];
+                case 1:
+                    playlist_raw = _a.sent();
+                    return [4, playlist_raw.all_videos()];
+                case 2:
+                    playlist = _a.sent();
+                    playlist.forEach(function (video) { return __awaiter(void 0, void 0, void 0, function () {
+                        var video_data, songs;
+                        return __generator(this, function (_a) {
+                            video_data = {
+                                title: video.title,
+                                url: video.url,
+                                duration: video.durationRaw,
+                                thumbnail: video.thumbnails[0].url,
+                                channel: video.channel.name
+                            };
+                            songs = GuildAudio.songs;
+                            songs.set(songs.size, video_data);
+                            return [2];
+                        });
+                    }); });
+                    return [3, 5];
+                case 3: return [4, Play.video_info(prompt)];
+                case 4:
+                    raw_data = (_a.sent()).video_details;
+                    yt_info = raw_data;
+                    video_data = {
+                        title: yt_info.title,
+                        url: yt_info.url,
+                        duration: yt_info.durationRaw,
+                        thumbnail: yt_info.thumbnails[0].url,
+                        channel: yt_info.channel.name
+                    };
+                    songs = GuildAudio.songs;
+                    songs.set(songs.size, video_data);
+                    message.reply("Song added successfuly");
+                    _a.label = 5;
+                case 5: return [3, 9];
+                case 6:
+                    if (!prompt.includes("spotify")) return [3, 7];
+                    return [2, message.reply("Spotify is not currently implemented")];
+                case 7: return [4, Play.search(prompt, { limit: 1 })];
+                case 8:
+                    raw_data = _a.sent();
+                    yt_info = raw_data[0];
+                    if (yt_info == undefined) {
+                        return [2, message.reply("No se encontro ninguna canción")];
+                    }
+                    video_data = {
+                        title: yt_info.title,
+                        url: yt_info.url,
+                        duration: yt_info.durationRaw,
+                        thumbnail: yt_info.thumbnails[0].url,
+                        channel: yt_info.channel.name
+                    };
+                    songs = GuildAudio.songs;
+                    songs.set(songs.size, video_data);
+                    _a.label = 9;
+                case 9:
+                    if (audioPlayer.state.status == "idle") {
+                        song = GuildAudio.songs.get(0);
+                        GuildAudio.textChannelID = message.channelId;
+                        (0, functions_1.playSong)(song, bot, guildID);
+                    }
+                    else {
+                        song = GuildAudio.songs.last();
+                        embed_1 = new Builder.EmbedBuilder();
+                        embed_1.setTitle(song.title);
+                        embed_1.setDescription("`[ 00:00 | " + song.duration + " ]`");
+                        embed_1.setThumbnail(song.thumbnail);
+                        embed_1.setAuthor({ name: "Added song" });
+                        embed_1.setURL(song.url);
+                        embed_1.setColor(5763719);
+                        bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
+                            channel.send({ embeds: [embed_1] });
+                        });
+                    }
+                    return [2];
+            }
         });
-    }
+    }); }
 };

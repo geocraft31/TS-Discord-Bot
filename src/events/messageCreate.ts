@@ -1,42 +1,49 @@
-import { Bot } from "../types"
+import { Bot, Command } from "../types";
 import Discord = require("discord.js")
+import guildData = require("./../data/guilds.json")
+import { logger } from "./../util/functions"
 
 module.exports = {
     name: "messageCreate",
-    run: async (bot: Bot, message: Discord.Message,) => {
+    run: async (bot: Bot, message: Discord.Message) => {
         
-        const { prefix, owners } = bot
+        if (Object.keys(guildData).includes(message.guildId)) {
+            var prefix: string = guildData[message.guildId].prefix
+        } else {
+            var { prefix } = bot
+        }
 
-        if (!message.guild)
-            return
-        
-        if (message.author.bot)
-            return
+        if (!message.guild) return
 
-        if (!message.content.startsWith(prefix))
-            return
+        if (message.author.bot) return
 
-        const args = message.content.slice(prefix.length).trim().split(" ") // All the 'command' with arguments
-        const cmdstr = args.shift().toLowerCase() // Just the 'command' name
+        if (!message.content.startsWith(prefix)) return
 
-        let command = bot.commands.get(cmdstr)
+        const args = message.content.slice(prefix.length).trim().split(" ")
+        const cmdstr = args.shift().toLowerCase()
+
+        let command: Command = bot.commands.get(cmdstr)
         if (!command) return
 
         let member = message.member
 
-        if (command.devOnly && !owners.includes(member.id)) {
+        if (command.devOnly && !bot.owners.includes(member.id)) {
             return message.reply("This command is only available to the bot owners")
         }
 
         if (command.permissions && member.permissions.missing(command.permissions).length !== 0) {
             return message.reply("You do not have permissions to use this command")
         }
-        
+
         try {
-            const command = bot.commands.get(cmdstr)
-            await command.run(bot, message,  args)
-        } catch (err) {
+
+            logger("Command", command.name, args)
+
+            await command.run(bot, message, args)
+        } 
+        catch (err) {
             console.error(err)
         }
+
     }
 }

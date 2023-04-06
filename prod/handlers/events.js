@@ -1,49 +1,36 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var Path = require("path");
-var fs = require("fs");
-var eventsPath = Path.resolve(__dirname, "./../events/");
-module.exports = function (bot) {
-    var events = fs.readdirSync(eventsPath).filter(function (f) { return f.endsWith(".js"); });
-    events.forEach(function (eventName) {
-        var event = require(eventsPath + "/".concat(eventName));
+var functions_1 = require("../util/functions");
+var Discord = require("discord.js");
+module.exports = function (bot, reload) {
+    var events = (0, functions_1.getFiles)("./events/", ".js");
+    if (events.length === 0) {
+        console.log("No events to load");
+    }
+    events.forEach(function (f, i) {
+        if (reload)
+            delete require.cache[require.resolve("../events/".concat(f))];
+        var event = require("../events/".concat(f));
         bot.events.set(event.name, event);
         console.log("Event: \u001B[33m ".concat(event.name, " \u001B[0m ~ \u001B[32m Loaded \u001B[0m"));
     });
-    initEvents(bot);
+    if (!reload)
+        initEvents(bot);
 };
-var initEvents = function (bot) {
+function initEvents(bot) {
     var client = bot.client;
     client.on("ready", function () {
-        triggerEventHandler(bot, "ready");
+        (0, functions_1.triggerEventHandler)(bot, "ready");
     });
     client.on("messageCreate", function (message) {
-        triggerEventHandler(bot, "messageCreate", message);
+        (0, functions_1.triggerEventHandler)(bot, "messageCreate", message);
     });
-};
-var triggerEventHandler = function (bot, eventName) {
-    var _a;
-    var args = [];
-    for (var _i = 2; _i < arguments.length; _i++) {
-        args[_i - 2] = arguments[_i];
-    }
-    var events = bot.events;
-    try {
-        if (events.has(eventName))
-            (_a = events.get(eventName)).run.apply(_a, __spreadArray([bot], args, false));
-        else
-            throw new Error("Event ".concat(eventName, " does not exist"));
-    }
-    catch (err) {
-        console.error(err);
-    }
-};
+    client.on("guildCreate", function (guild) {
+        (0, functions_1.triggerEventHandler)(bot, "guildCreate", guild);
+    });
+    client.on(Discord.Events.InteractionCreate, function (interaction) {
+        if (!interaction.isChatInputCommand())
+            return;
+        (0, functions_1.triggerEventHandler)(bot, "interactionCreate", interaction);
+    });
+}

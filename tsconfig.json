@@ -4,9 +4,11 @@
         "allowJs": false,
         "target": "ES5",
         "moduleResolution": "node",
+        "resolveJsonModule": true,
         "skipLibCheck": true,
         "outDir": "prod",
         "rootDir": "./src",
-        "watch": true
+        "watch": true,
+        "removeComments": true
     }
 }
