@@ -45,7 +45,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.disconectBot = exports.playSong = exports.logger = exports.triggerEventHandler = exports.getFiles = void 0;
+exports.createTimeout = exports.disconectBot = exports.playSong = exports.logger = exports.triggerEventHandler = exports.getFiles = void 0;
 var fs = require("fs");
 var Play = require("play-dl");
 var Builder = require("@discordjs/builders");
@@ -140,16 +140,23 @@ var disconectBot = function (bot, guildID) {
     var GuildAudio = bot.audio.get(guildID);
     GuildAudio.voiceConnection.disconnect();
     GuildAudio.subscription.unsubscribe();
-    GuildAudio.disconectInterval(true);
+    clearTimeout(GuildAudio.disconectInterval);
     GuildAudio.voiceConnection.removeAllListeners();
     GuildAudio.player.removeAllListeners();
     bot.audio.delete(guildID);
 };
 exports.disconectBot = disconectBot;
+var createTimeout = function (bot, guildID) {
+    return setTimeout(function () {
+        (0, exports.disconectBot)(bot, guildID);
+    }, 30 * 1000);
+};
+exports.createTimeout = createTimeout;
 module.exports = {
     getFiles: exports.getFiles,
     playSong: exports.playSong,
     triggerEventHandler: exports.triggerEventHandler,
     logger: exports.logger,
-    disconectBot: exports.disconectBot
+    disconectBot: exports.disconectBot,
+    createTimeout: exports.createTimeout
 };

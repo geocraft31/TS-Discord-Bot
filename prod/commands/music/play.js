@@ -50,15 +50,15 @@ module.exports = {
     example: "play <song>",
     devOnly: false,
     run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
-        var audio, client, userID, voiceChannel, guildID, settings, GuildAudio, audioPlayer, voiceConnection, subscription, prompt, playlist_raw, playlist, raw_data, yt_info, video_data, songs, raw_data, yt_info, video_data, songs, song, song, embed_1;
+        var audio, voiceChannel, guildID, timer, settings, GuildAudio, audioPlayer, voiceConnection, subscription, prompt, playlist_raw, playlist, raw_data, yt_info, video_data, songs, raw_data, yt_info, video_data, songs, song, song, embed_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    audio = bot.audio, client = bot.client;
-                    userID = message.author.id;
+                    audio = bot.audio;
                     voiceChannel = message.member.voice;
                     guildID = message.guildId;
                     if (!audio.has(guildID)) {
+                        timer = (0, functions_1.createTimeout)(bot, guildID);
                         settings = {
                             player: new Voice.AudioPlayer({
                                 behaviors: {
@@ -71,20 +71,14 @@ module.exports = {
                             loopqueue: false,
                             voiceChannel: voiceChannel,
                             voiceChannelID: voiceChannel.channelId,
-                            disconectInterval: function (stop) {
-                                var timer = setTimeout(function () {
-                                    (0, functions_1.disconectBot)(bot, guildID);
-                                }, (30 * 1000));
-                                if (stop) {
-                                    clearTimeout(timer);
-                                }
-                            }
+                            disconectInterval: timer
                         };
                         audio.set(guildID, settings);
                         audio.get(guildID).player.on("stateChange", function (oldState, newState) {
                             (0, functions_1.triggerEventHandler)(bot, "stateChange", newState, guildID);
                         });
                     }
+                    clearInterval(audio.get(guildID).disconectInterval);
                     GuildAudio = audio.get(guildID);
                     audioPlayer = GuildAudio.player;
                     if (voiceChannel.channelId == null) {

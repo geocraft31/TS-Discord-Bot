@@ -3,7 +3,7 @@ import Discord = require("discord.js")
 import Builder = require("@discordjs/builders")
 import Voice = require("@discordjs/voice")
 import Play = require("play-dl")
-import { triggerEventHandler, playSong, logger, disconectBot } from "../../util/functions";
+import { triggerEventHandler, playSong, logger, createTimeout } from "../../util/functions";
 
 module.exports = {
     name: "play",
@@ -15,13 +15,15 @@ module.exports = {
     devOnly: false,
     run: async (bot: Bot, message: Discord.Message, args: Array<string>) => {
         
-        const { audio, client } = bot
+        const { audio } = bot
 
-        const userID = message.author.id
         const voiceChannel = message.member.voice
         const guildID = message.guildId
 
         if (!audio.has(guildID)) {
+
+            let timer = createTimeout(bot, guildID)
+
             const settings = {
                 player: new Voice.AudioPlayer({
                     behaviors: {
@@ -34,14 +36,7 @@ module.exports = {
                 loopqueue: false,
                 voiceChannel: voiceChannel,
                 voiceChannelID: voiceChannel.channelId,
-                disconectInterval: (stop?: boolean) => {
-                    var timer = setTimeout(() => {
-                            disconectBot(bot, guildID)
-                        }, (30 * 1000))
-                    if (stop) {
-                        clearTimeout(timer)
-                    }
-                }
+                disconectInterval: timer
             }
 
             audio.set(guildID, settings)
@@ -50,7 +45,9 @@ module.exports = {
                 triggerEventHandler(bot, "stateChange", newState, guildID)
             })
         }
-
+        
+        clearInterval(audio.get(guildID).disconectInterval)
+        
         const GuildAudio = audio.get(guildID)
         var audioPlayer = GuildAudio.player
 

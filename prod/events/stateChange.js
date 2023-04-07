@@ -42,7 +42,7 @@ var functions_2 = require("./../util/functions");
 module.exports = {
     name: "stateChange",
     run: function (bot, state, guildID) { return __awaiter(void 0, void 0, void 0, function () {
-        var GuildAudio, loopqueue, songs, first_song, i, channel, channel, song;
+        var GuildAudio, loopqueue, songs, first_song, i, channel, song;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -68,17 +68,8 @@ module.exports = {
                     catch (err) {
                         console.error(err);
                     }
-                    try {
-                        channel = bot.client.channels.cache.get(GuildAudio.voiceChannelID);
-                        if (channel.isVoiceBased() && channel.members.size <= 1) {
-                            return [2, (0, functions_1.disconectBot)(bot, guildID)];
-                        }
-                    }
-                    catch (err) {
-                        console.log(err);
-                    }
                     if (songs.size == 0) {
-                        GuildAudio.disconectInterval();
+                        GuildAudio.disconectInterval = (0, functions_1.createTimeout)(bot, guildID);
                     }
                     if (!(songs.size > 0)) return [3, 2];
                     song = songs.first();

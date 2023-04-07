@@ -87,21 +87,30 @@ export const playSong = async(song: SongData, bot: Bot, guildID: string) => {
         channel.send({ embeds: [embed] })
     })
 }
+
 export const disconectBot = (bot: Bot, guildID: string) => {
     const GuildAudio = bot.audio.get(guildID)
 
     GuildAudio.voiceConnection.disconnect()
     GuildAudio.subscription.unsubscribe()
-    GuildAudio.disconectInterval(true)
+    clearTimeout(GuildAudio.disconectInterval)
     GuildAudio.voiceConnection.removeAllListeners()
     GuildAudio.player.removeAllListeners()
 
     bot.audio.delete(guildID)
 }
+
+export const createTimeout = (bot: Bot, guildID: string) => {
+    return setTimeout(() => {
+        disconectBot(bot, guildID)
+    }, 30 * 1000);
+}
+
 module.exports = {
     getFiles,
     playSong,
     triggerEventHandler,
     logger,
-    disconectBot
+    disconectBot,
+    createTimeout
 }

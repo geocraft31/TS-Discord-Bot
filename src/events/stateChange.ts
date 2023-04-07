@@ -1,7 +1,7 @@
 import { Bot } from "../types";
 import Voice = require("@discordjs/voice")
 import Discord = require("discord.js")
-import { playSong, disconectBot } from "../util/functions";
+import { playSong, disconectBot, createTimeout } from "../util/functions";
 import { logger } from "./../util/functions"
 
 
@@ -29,7 +29,7 @@ module.exports = {
             if (loopqueue)
                 songs.set(songs.size, first_song)
             
-            // no one left loop on
+            // no one left
             try {
                 let channel = bot.client.channels.cache.get(GuildAudio.voiceChannelID)
 
@@ -40,21 +40,10 @@ module.exports = {
             } catch (err) {
                 console.error(err)
             }
-        
-            // no one left no loop
-            try {
-                let channel = bot.client.channels.cache.get(GuildAudio.voiceChannelID)
-
-                if (channel.isVoiceBased() && channel.members.size <= 1) {
-                    return disconectBot(bot, guildID)
-                }
-            } catch (err) {
-                console.log(err)
-            }
 
             // no songs left 
             if (songs.size == 0) {
-                GuildAudio.disconectInterval()
+                GuildAudio.disconectInterval = createTimeout(bot, guildID)
             }
 
             if (songs.size > 0) {

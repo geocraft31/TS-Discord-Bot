@@ -13,16 +13,22 @@ module.exports = {
     run: async ( bot: Bot, message: Discord.Message, args ) => {
 
         const { audio } = bot
+        if (bot.audio.get(message.guildId) == undefined)
+            return message.reply("No song to skip") // TODO make embed
+
+            
         try {
             const guildID = message.guildId
             const audioPlayer = audio.get(guildID).player
             try {
                 audioPlayer.stop()
                 message.reply("Song skiped")
-            } catch {
+            } catch (err) {
+                console.log(err)
                 message.reply("error")
             }
-        } catch {
+        } catch (err) {
+            console.log(err)
             message.reply("No song to skip")
         }
     }

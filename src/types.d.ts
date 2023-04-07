@@ -37,7 +37,7 @@ type AudioSettings = {
     voiceChannelID: string,
     voiceConnection?: Voice.VoiceConnection,
     subscription?: Voice.PlayerSubscription,
-    disconectInterval: CallableFunction
+    disconectInterval: NodeJS.Timeout
 }
 
 type SongData = {
