@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Discord = require("discord.js");
+var Play = require("play-dl");
 require("dotenv").config({ path: "./../.env" });
 var client = new Discord.Client({
     intents: [
@@ -26,4 +27,12 @@ var loadCommands = function (bot, reload) { return require("./handlers/commands"
 loadCommands(bot, false);
 var loadSlashCommands = function (bot, reload) { return require("./handlers/slashcommands")(bot, reload); };
 loadSlashCommands(bot, false);
+Play.setToken({
+    spotify: {
+        client_id: "766bd4e8c3be436cb757e6f1072e99e1",
+        client_secret: process.env.CLIENT_SECRET,
+        market: 'es',
+        refresh_token: "AQATi9C1MoGKQZ0a5Z2gPI7Q54hfSz7Es_xUnCWiQ0OdHSY4avzah3NRcHQExyhR0yNWeIi4WXz9QeHLzbEhlktDOvd6g5wu5rwNlbHsTOmrpI10x5V_HmzlJJnw9MbQFEo"
+    }
+});
 client.login(process.env.TOKEN);
