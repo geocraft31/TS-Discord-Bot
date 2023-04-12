@@ -103,7 +103,7 @@ export const disconectBot = (bot: Bot, guildID: string) => {
 export const createTimeout = (bot: Bot, guildID: string) => {
     return setTimeout(() => {
         disconectBot(bot, guildID)
-    }, 30 * 1000);
+    }, 60 * 1000);
 }
 
 module.exports = {

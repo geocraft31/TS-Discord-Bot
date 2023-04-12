@@ -133,31 +133,49 @@ module.exports = {
         } else if (prompt.includes("spotify"))
         {
             let spotify_data:any = (await Play.spotify(prompt))
-
+            // spotify playlist
             if (spotify_data.type == "playlist") {
                 message.reply("this can take a while please wait while the bot adds all the songs")
-                let tracks = await spotify_data.all_tracks()
+                let tracks: Array<Play.SpotifyTrack> = await spotify_data.all_tracks()
                 let n = 0
                 for await (const track of tracks) {
                     n++
-                    let raw_data = await Play.search(`${track.name} ${track.artists[0].name}`)
-                    let video = raw_data[0]
-                    
-                    let video_data = {
-                        title: video.title,
-                        url: video.url,
-                        duration: video.durationRaw,
-                        thumbnail: video.thumbnails[0].url,
-                        channel: video.channel.name
+                    try {
+                        let raw_data = await Play.search(`${track.name} ${track.artists[0].name}`)
+                        let video = raw_data[0]
+                        let video_data = {
+                            title: video.title,
+                            url: video.url,
+                            duration: video.durationRaw,
+                            thumbnail: video.thumbnails[0].url,
+                            channel: video.channel.name
+                        }
+                        let songs = GuildAudio.songs
+                        songs.set(songs.size, video_data)
+                        logger("Added song", video.title, `${n} / ${spotify_data.tracksCount}`)
+                        if (songs.size == 1 && audioPlayer.state.status == "idle") {
+                            let song: SongData = GuildAudio.songs.get(0)
+                            GuildAudio.textChannelID = message.channelId
+                            playSong(song, bot, guildID)
+                        }
+                    } catch(err) {
+                        if(err instanceof TypeError) {
+                            const embed = new Builder.EmbedBuilder()
+                            embed.setTitle(track.name)
+                            embed.setDescription("`[ ERROR ]`")
+                            embed.setThumbnail(track.thumbnail.url)
+                            embed.setAuthor({name: "Could not find the song in youtube"})
+                            embed.setURL(track.url)
+                            embed.setColor(15548997)
+                        
+                            bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
+                                channel.send({ embeds: [embed] })
+                            })
+                        } else {
+                            console.log(err)
+                        }
                     }
-                    let songs = GuildAudio.songs
-                    songs.set(songs.size, video_data)
-                    logger("Added song", video.title, `${n} / ${spotify_data.tracksCount}`)
-                    if (songs.size == 1 && audioPlayer.state.status == "idle") {
-                        let song: SongData = GuildAudio.songs.get(0)
-                        GuildAudio.textChannelID = message.channelId
-                        playSong(song, bot, guildID)
-                    }
+
                 }
                 const embed = new Builder.EmbedBuilder()
                 embed.setTitle(spotify_data.name)
@@ -170,7 +188,7 @@ module.exports = {
                 bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
                     channel.send({ embeds: [embed] })
                 })
-                
+            // spotify song
             } else if (spotify_data.type == "track") {
                 let raw_data = (await Play.search(`${spotify_data.name} ${spotify_data.artists[0].name}`))
                 let yt_info = raw_data[0]

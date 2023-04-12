@@ -18,7 +18,7 @@ module.exports = {
 
         disconectBot(bot, guildID)
 
-        // TODO embed
+
         const embed = new Builder.EmbedBuilder()
         embed.setTitle("I left the voice channel")
         embed.setAuthor({name: "Disconnected"})

@@ -1,6 +1,7 @@
 // TODO embed
 import Discord = require("discord.js")
 import { Bot } from "../../types"
+import Builder = require("@discordjs/builders")
 
 module.exports = {
     name: "move",
@@ -29,6 +30,15 @@ module.exports = {
             let movedSong = songs.get(songIndex)
             songs.set(songPos, movedSong)
             songs.set(songIndex, oldSong)
+
+            const embed = new Builder.EmbedBuilder()
+            embed.setTitle(`Moved song: ${songs.at(songIndex).title} to ${songPos}`)
+            embed.setAuthor({name: "Song moved"})
+            embed.setColor(15548997)
+            
+            bot.client.channels.fetch(audio.get(message.guildId).textChannelID).then((channel:Discord.TextChannel) => {
+                channel.send({ embeds: [embed] })
+            })
             message.reply("song moved")
         } catch {
             message.reply("no song")

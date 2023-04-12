@@ -149,7 +149,7 @@ exports.disconectBot = disconectBot;
 var createTimeout = function (bot, guildID) {
     return setTimeout(function () {
         (0, exports.disconectBot)(bot, guildID);
-    }, 30 * 1000);
+    }, 60 * 1000);
 };
 exports.createTimeout = createTimeout;
 module.exports = {

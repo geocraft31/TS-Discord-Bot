@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var Builder = require("@discordjs/builders");
 module.exports = {
     name: "move",
     category: "music",
@@ -45,7 +46,7 @@ module.exports = {
     example: "move <position of the song> <new position>",
     devOnly: false,
     run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
-        var audio, songs, songIndex, songPos, oldSong, movedSong;
+        var audio, songs, songIndex, songPos, oldSong, movedSong, embed_1;
         return __generator(this, function (_a) {
             try {
                 audio = bot.audio;
@@ -62,6 +63,13 @@ module.exports = {
                 movedSong = songs.get(songIndex);
                 songs.set(songPos, movedSong);
                 songs.set(songIndex, oldSong);
+                embed_1 = new Builder.EmbedBuilder();
+                embed_1.setTitle("Moved song: ".concat(songs.at(songIndex).title, " to ").concat(songPos));
+                embed_1.setAuthor({ name: "Song moved" });
+                embed_1.setColor(15548997);
+                bot.client.channels.fetch(audio.get(message.guildId).textChannelID).then(function (channel) {
+                    channel.send({ embeds: [embed_1] });
+                });
                 message.reply("song moved");
             }
             catch (_b) {
