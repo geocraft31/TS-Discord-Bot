@@ -1,4 +1,4 @@
-import { Bot, SongData } from "../../types";
+import { AudioSettings, Bot, SongData } from "../../types";
 import Discord = require("discord.js")
 import Builder = require("@discordjs/builders")
 import Voice = require("@discordjs/voice")
@@ -21,9 +21,7 @@ module.exports = {
         const guildID = message.guildId
 
         if (!audio.has(guildID)) {
-
             let timer = createTimeout(bot, guildID)
-
             const settings = {
                 player: new Voice.AudioPlayer({
                     behaviors: {
@@ -76,59 +74,36 @@ module.exports = {
 
         let prompt = args.join(' ')
 
+        const embed = new Builder.EmbedBuilder()
+
         if (prompt.includes("youtube.com")) {
             if (prompt.includes("playlist")) {
                 // youtube playlist
                 let playlist_raw = await Play.playlist_info(prompt)
                 let playlist = await playlist_raw.all_videos()
                 playlist.forEach(async (video) => {
-                    let video_data = {
-                        title: video.title,
-                        url: video.url,
-                        duration: video.durationRaw,
-                        thumbnail: video.thumbnails[0].url,
-                        channel: video.channel.name
-                    }
-                    let songs = GuildAudio.songs
-                    songs.set(songs.size, video_data)
+                    addSong(GuildAudio, video)
                 });
-                const embed = new Builder.EmbedBuilder()
                 embed.setTitle(playlist_raw.title)
                 embed.setDescription("`[ Videos: " + playlist_raw.total_videos + " ]`")
                 embed.setThumbnail(playlist_raw.thumbnail.url)
                 embed.setAuthor({name: "Added playlist"})
                 embed.setURL(playlist_raw.url)
                 embed.setColor(5763719)
-            
-                bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                    channel.send({ embeds: [embed] })
-                })
+
             } else {
                 // youtube video
-                let raw_data = (await Play.video_info(prompt)).video_details
+                let yt_info = (await Play.video_info(prompt)).video_details
+                
+                addSong(GuildAudio, yt_info)
 
-                let yt_info = raw_data
-                let video_data = {
-                    title: yt_info.title,
-                    url: yt_info.url,
-                    duration: yt_info.durationRaw,
-                    thumbnail: yt_info.thumbnails[0].url,
-                    channel: yt_info.channel.name
-                }
-                let songs = GuildAudio.songs
-                songs.set(songs.size, video_data)
-
-                const embed = new Builder.EmbedBuilder()
                 embed.setTitle(yt_info.title)
                 embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`")
                 embed.setThumbnail(yt_info.thumbnails[0].url)
                 embed.setAuthor({name: "Added video"})
                 embed.setURL(yt_info.url)
                 embed.setColor(5763719)
-            
-                bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                    channel.send({ embeds: [embed] })
-                })
+
             }
         } else if (prompt.includes("spotify"))
         {
@@ -143,77 +118,54 @@ module.exports = {
                     try {
                         let raw_data = await Play.search(`${track.name} ${track.artists[0].name}`)
                         let video = raw_data[0]
-                        let video_data = {
-                            title: video.title,
-                            url: video.url,
-                            duration: video.durationRaw,
-                            thumbnail: video.thumbnails[0].url,
-                            channel: video.channel.name
+                        if (video != undefined) {
+                            addSong(GuildAudio, video)
+                        } 
+                        else {
+                            const errorEmbed = new Builder.EmbedBuilder()
+                            errorEmbed.setTitle(track.name)
+                            errorEmbed.setDescription("`[ ERROR ]`")
+                            errorEmbed.setThumbnail(track.thumbnail.url)
+                            errorEmbed.setAuthor({name: "Could not find the song in youtube"})
+                            errorEmbed.setURL(track.url)
+                            errorEmbed.setColor(15548997)
+                        
+                            bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
+                                channel.send({ embeds: [errorEmbed] })
+                            })
                         }
-                        let songs = GuildAudio.songs
-                        songs.set(songs.size, video_data)
-                        logger("Added song", video.title, `${n} / ${spotify_data.tracksCount}`)
-                        if (songs.size == 1 && audioPlayer.state.status == "idle") {
+                        
+                        if (GuildAudio.songs.size == 1 && audioPlayer.state.status == "idle") {
                             let song: SongData = GuildAudio.songs.get(0)
                             GuildAudio.textChannelID = message.channelId
                             playSong(song, bot, guildID)
                         }
                     } catch(err) {
-                        if(err instanceof TypeError) {
-                            const embed = new Builder.EmbedBuilder()
-                            embed.setTitle(track.name)
-                            embed.setDescription("`[ ERROR ]`")
-                            embed.setThumbnail(track.thumbnail.url)
-                            embed.setAuthor({name: "Could not find the song in youtube"})
-                            embed.setURL(track.url)
-                            embed.setColor(15548997)
-                        
-                            bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                                channel.send({ embeds: [embed] })
-                            })
-                        } else {
-                            console.log(err)
-                        }
+                        console.log(err)
                     }
 
                 }
-                const embed = new Builder.EmbedBuilder()
                 embed.setTitle(spotify_data.name)
                 embed.setDescription("`[ Songs: " + spotify_data.tracksCount + " ]`")
                 embed.setThumbnail(spotify_data.thumbnail.url)
                 embed.setAuthor({name: "Added playlist"})
                 embed.setURL(spotify_data.url)
                 embed.setColor(5763719)
-            
-                bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                    channel.send({ embeds: [embed] })
-                })
+
             // spotify song
             } else if (spotify_data.type == "track") {
                 let raw_data = (await Play.search(`${spotify_data.name} ${spotify_data.artists[0].name}`))
                 let yt_info = raw_data[0]
 
-                let video_data = {
-                    title: yt_info.title,
-                    url: yt_info.url,
-                    duration: yt_info.durationRaw,
-                    thumbnail: yt_info.thumbnails[0].url,
-                    channel: yt_info.channel.name
-                }
-                let songs = GuildAudio.songs
-                songs.set(songs.size, video_data)
+                addSong(GuildAudio, yt_info)
 
-                const embed = new Builder.EmbedBuilder()
+
                 embed.setTitle(yt_info.title)
                 embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`")
                 embed.setThumbnail(yt_info.thumbnails[0].url)
                 embed.setAuthor({name: "Added song"})
                 embed.setURL(yt_info.url)
                 embed.setColor(5763719)
-            
-                bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                    channel.send({ embeds: [embed] })
-                })
             }
         } else {
             let raw_data = await Play.search(prompt, { limit: 1 })
@@ -222,31 +174,20 @@ module.exports = {
             if (yt_info == undefined) {
                 return message.reply("No se encontro ninguna canción")
             }
+            addSong(GuildAudio, yt_info)
 
-            let video_data = {
-                title: yt_info.title,
-                url: yt_info.url,
-                duration: yt_info.durationRaw,
-                thumbnail: yt_info.thumbnails[0].url,
-                channel: yt_info.channel.name
-            }
-            let songs = GuildAudio.songs
-            songs.set(songs.size, video_data)
-
-            let song = GuildAudio.songs.last()
-            const embed = new Builder.EmbedBuilder()
-            embed.setTitle(song.title)
-            embed.setDescription("`[ 00:00 | " + song.duration + " ]`")
-            embed.setThumbnail(song.thumbnail)
+            embed.setTitle(yt_info.title)
+            embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`")
+            embed.setThumbnail(yt_info.thumbnails[0].url)
             embed.setAuthor({name: "Added song"})
-            embed.setURL(song.url)
+            embed.setURL(yt_info.url)
             embed.setColor(5763719)
-        
-            bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
-                channel.send({ embeds: [embed] })
-            })
 
         }
+
+        bot.client.channels.fetch(GuildAudio.textChannelID).then((channel:Discord.TextChannel) => {
+            channel.send({ embeds: [embed] })
+        })
 
         if (audioPlayer.state.status == "idle") {
             let song: SongData = GuildAudio.songs.get(0)
@@ -254,4 +195,19 @@ module.exports = {
             playSong(song, bot, guildID)
         }
     }
+}
+
+async function addSong(GuildAudio: AudioSettings,song: Play.YouTubeVideo ) {
+
+    var video_data = {
+        title: song.title,
+        url: song.url,
+        duration: song.durationRaw,
+        thumbnail: song.thumbnails[0].url,
+        channel: song.channel.name
+    }
+
+    let songs = GuildAudio.songs
+    songs.set(songs.size, video_data)
+
 }

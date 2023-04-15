@@ -57,7 +57,7 @@ module.exports = {
     example: "play <song>",
     devOnly: false,
     run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
-        var audio, voiceChannel, guildID, timer, settings, GuildAudio, audioPlayer, voiceConnection, subscription, prompt, playlist_raw, playlist, embed_1, raw_data, yt_info, video_data, songs, embed_2, spotify_data, tracks, n, _loop_1, _a, tracks_1, tracks_1_1, e_1_1, embed_3, raw_data, yt_info, video_data, songs, embed_4, raw_data, yt_info, video_data, songs, song, embed_5, song;
+        var audio, voiceChannel, guildID, timer, settings, GuildAudio, audioPlayer, voiceConnection, subscription, prompt, embed, playlist_raw, playlist, yt_info, spotify_data, tracks, n, _loop_1, _a, tracks_1, tracks_1_1, e_1_1, raw_data, yt_info, raw_data, yt_info, song;
         var _b, e_1, _c, _d;
         return __generator(this, function (_e) {
             switch (_e.label) {
@@ -107,6 +107,7 @@ module.exports = {
                     subscription = GuildAudio.voiceConnection.subscribe(audioPlayer);
                     GuildAudio.subscription = subscription;
                     prompt = args.join(' ');
+                    embed = new Builder.EmbedBuilder();
                     if (!prompt.includes("youtube.com")) return [3, 6];
                     if (!prompt.includes("playlist")) return [3, 3];
                     return [4, Play.playlist_info(prompt)];
@@ -116,54 +117,28 @@ module.exports = {
                 case 2:
                     playlist = _e.sent();
                     playlist.forEach(function (video) { return __awaiter(void 0, void 0, void 0, function () {
-                        var video_data, songs;
                         return __generator(this, function (_a) {
-                            video_data = {
-                                title: video.title,
-                                url: video.url,
-                                duration: video.durationRaw,
-                                thumbnail: video.thumbnails[0].url,
-                                channel: video.channel.name
-                            };
-                            songs = GuildAudio.songs;
-                            songs.set(songs.size, video_data);
+                            addSong(GuildAudio, video);
                             return [2];
                         });
                     }); });
-                    embed_1 = new Builder.EmbedBuilder();
-                    embed_1.setTitle(playlist_raw.title);
-                    embed_1.setDescription("`[ Videos: " + playlist_raw.total_videos + " ]`");
-                    embed_1.setThumbnail(playlist_raw.thumbnail.url);
-                    embed_1.setAuthor({ name: "Added playlist" });
-                    embed_1.setURL(playlist_raw.url);
-                    embed_1.setColor(5763719);
-                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                        channel.send({ embeds: [embed_1] });
-                    });
+                    embed.setTitle(playlist_raw.title);
+                    embed.setDescription("`[ Videos: " + playlist_raw.total_videos + " ]`");
+                    embed.setThumbnail(playlist_raw.thumbnail.url);
+                    embed.setAuthor({ name: "Added playlist" });
+                    embed.setURL(playlist_raw.url);
+                    embed.setColor(5763719);
                     return [3, 5];
                 case 3: return [4, Play.video_info(prompt)];
                 case 4:
-                    raw_data = (_e.sent()).video_details;
-                    yt_info = raw_data;
-                    video_data = {
-                        title: yt_info.title,
-                        url: yt_info.url,
-                        duration: yt_info.durationRaw,
-                        thumbnail: yt_info.thumbnails[0].url,
-                        channel: yt_info.channel.name
-                    };
-                    songs = GuildAudio.songs;
-                    songs.set(songs.size, video_data);
-                    embed_2 = new Builder.EmbedBuilder();
-                    embed_2.setTitle(yt_info.title);
-                    embed_2.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`");
-                    embed_2.setThumbnail(yt_info.thumbnails[0].url);
-                    embed_2.setAuthor({ name: "Added video" });
-                    embed_2.setURL(yt_info.url);
-                    embed_2.setColor(5763719);
-                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                        channel.send({ embeds: [embed_2] });
-                    });
+                    yt_info = (_e.sent()).video_details;
+                    addSong(GuildAudio, yt_info);
+                    embed.setTitle(yt_info.title);
+                    embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`");
+                    embed.setThumbnail(yt_info.thumbnails[0].url);
+                    embed.setAuthor({ name: "Added video" });
+                    embed.setURL(yt_info.url);
+                    embed.setColor(5763719);
                     _e.label = 5;
                 case 5: return [3, 27];
                 case 6:
@@ -181,7 +156,7 @@ module.exports = {
                 case 9:
                     _e.trys.push([9, 15, 16, 21]);
                     _loop_1 = function () {
-                        var track, raw_data, video, video_data, songs, song, err_1, embed_6;
+                        var track, raw_data, video, errorEmbed_1, song, err_1;
                         return __generator(this, function (_f) {
                             switch (_f.label) {
                                 case 0:
@@ -199,17 +174,22 @@ module.exports = {
                                 case 3:
                                     raw_data = _f.sent();
                                     video = raw_data[0];
-                                    video_data = {
-                                        title: video.title,
-                                        url: video.url,
-                                        duration: video.durationRaw,
-                                        thumbnail: video.thumbnails[0].url,
-                                        channel: video.channel.name
-                                    };
-                                    songs = GuildAudio.songs;
-                                    songs.set(songs.size, video_data);
-                                    (0, functions_1.logger)("Added song", video.title, "".concat(n, " / ").concat(spotify_data.tracksCount));
-                                    if (songs.size == 1 && audioPlayer.state.status == "idle") {
+                                    if (video != undefined) {
+                                        addSong(GuildAudio, video);
+                                    }
+                                    else {
+                                        errorEmbed_1 = new Builder.EmbedBuilder();
+                                        errorEmbed_1.setTitle(track.name);
+                                        errorEmbed_1.setDescription("`[ ERROR ]`");
+                                        errorEmbed_1.setThumbnail(track.thumbnail.url);
+                                        errorEmbed_1.setAuthor({ name: "Could not find the song in youtube" });
+                                        errorEmbed_1.setURL(track.url);
+                                        errorEmbed_1.setColor(15548997);
+                                        bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
+                                            channel.send({ embeds: [errorEmbed_1] });
+                                        });
+                                    }
+                                    if (GuildAudio.songs.size == 1 && audioPlayer.state.status == "idle") {
                                         song = GuildAudio.songs.get(0);
                                         GuildAudio.textChannelID = message.channelId;
                                         (0, functions_1.playSong)(song, bot, guildID);
@@ -217,21 +197,7 @@ module.exports = {
                                     return [3, 5];
                                 case 4:
                                     err_1 = _f.sent();
-                                    if (err_1 instanceof TypeError) {
-                                        embed_6 = new Builder.EmbedBuilder();
-                                        embed_6.setTitle(track.name);
-                                        embed_6.setDescription("`[ ERROR ]`");
-                                        embed_6.setThumbnail(track.thumbnail.url);
-                                        embed_6.setAuthor({ name: "Could not find the song in youtube" });
-                                        embed_6.setURL(track.url);
-                                        embed_6.setColor(15548997);
-                                        bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                                            channel.send({ embeds: [embed_6] });
-                                        });
-                                    }
-                                    else {
-                                        console.log(err_1);
-                                    }
+                                    console.log(err_1);
                                     return [3, 5];
                                 case 5: return [3, 7];
                                 case 6:
@@ -269,16 +235,12 @@ module.exports = {
                     return [7];
                 case 20: return [7];
                 case 21:
-                    embed_3 = new Builder.EmbedBuilder();
-                    embed_3.setTitle(spotify_data.name);
-                    embed_3.setDescription("`[ Songs: " + spotify_data.tracksCount + " ]`");
-                    embed_3.setThumbnail(spotify_data.thumbnail.url);
-                    embed_3.setAuthor({ name: "Added playlist" });
-                    embed_3.setURL(spotify_data.url);
-                    embed_3.setColor(5763719);
-                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                        channel.send({ embeds: [embed_3] });
-                    });
+                    embed.setTitle(spotify_data.name);
+                    embed.setDescription("`[ Songs: " + spotify_data.tracksCount + " ]`");
+                    embed.setThumbnail(spotify_data.thumbnail.url);
+                    embed.setAuthor({ name: "Added playlist" });
+                    embed.setURL(spotify_data.url);
+                    embed.setColor(5763719);
                     return [3, 24];
                 case 22:
                     if (!(spotify_data.type == "track")) return [3, 24];
@@ -286,25 +248,13 @@ module.exports = {
                 case 23:
                     raw_data = (_e.sent());
                     yt_info = raw_data[0];
-                    video_data = {
-                        title: yt_info.title,
-                        url: yt_info.url,
-                        duration: yt_info.durationRaw,
-                        thumbnail: yt_info.thumbnails[0].url,
-                        channel: yt_info.channel.name
-                    };
-                    songs = GuildAudio.songs;
-                    songs.set(songs.size, video_data);
-                    embed_4 = new Builder.EmbedBuilder();
-                    embed_4.setTitle(yt_info.title);
-                    embed_4.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`");
-                    embed_4.setThumbnail(yt_info.thumbnails[0].url);
-                    embed_4.setAuthor({ name: "Added song" });
-                    embed_4.setURL(yt_info.url);
-                    embed_4.setColor(5763719);
-                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                        channel.send({ embeds: [embed_4] });
-                    });
+                    addSong(GuildAudio, yt_info);
+                    embed.setTitle(yt_info.title);
+                    embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`");
+                    embed.setThumbnail(yt_info.thumbnails[0].url);
+                    embed.setAuthor({ name: "Added song" });
+                    embed.setURL(yt_info.url);
+                    embed.setColor(5763719);
                     _e.label = 24;
                 case 24: return [3, 27];
                 case 25: return [4, Play.search(prompt, { limit: 1 })];
@@ -314,28 +264,18 @@ module.exports = {
                     if (yt_info == undefined) {
                         return [2, message.reply("No se encontro ninguna canción")];
                     }
-                    video_data = {
-                        title: yt_info.title,
-                        url: yt_info.url,
-                        duration: yt_info.durationRaw,
-                        thumbnail: yt_info.thumbnails[0].url,
-                        channel: yt_info.channel.name
-                    };
-                    songs = GuildAudio.songs;
-                    songs.set(songs.size, video_data);
-                    song = GuildAudio.songs.last();
-                    embed_5 = new Builder.EmbedBuilder();
-                    embed_5.setTitle(song.title);
-                    embed_5.setDescription("`[ 00:00 | " + song.duration + " ]`");
-                    embed_5.setThumbnail(song.thumbnail);
-                    embed_5.setAuthor({ name: "Added song" });
-                    embed_5.setURL(song.url);
-                    embed_5.setColor(5763719);
-                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                        channel.send({ embeds: [embed_5] });
-                    });
+                    addSong(GuildAudio, yt_info);
+                    embed.setTitle(yt_info.title);
+                    embed.setDescription("`[ 00:00 | " + yt_info.durationRaw + " ]`");
+                    embed.setThumbnail(yt_info.thumbnails[0].url);
+                    embed.setAuthor({ name: "Added song" });
+                    embed.setURL(yt_info.url);
+                    embed.setColor(5763719);
                     _e.label = 27;
                 case 27:
+                    bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
+                        channel.send({ embeds: [embed] });
+                    });
                     if (audioPlayer.state.status == "idle") {
                         song = GuildAudio.songs.get(0);
                         GuildAudio.textChannelID = message.channelId;
@@ -346,3 +286,20 @@ module.exports = {
         });
     }); }
 };
+function addSong(GuildAudio, song) {
+    return __awaiter(this, void 0, void 0, function () {
+        var video_data, songs;
+        return __generator(this, function (_a) {
+            video_data = {
+                title: song.title,
+                url: song.url,
+                duration: song.durationRaw,
+                thumbnail: song.thumbnails[0].url,
+                channel: song.channel.name
+            };
+            songs = GuildAudio.songs;
+            songs.set(songs.size, video_data);
+            return [2];
+        });
+    });
+}
