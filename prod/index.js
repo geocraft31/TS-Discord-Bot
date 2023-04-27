@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var Discord = require("discord.js");
 var Play = require("play-dl");
-require("dotenv").config({ path: "./../.env" });
+var path = require("path");
+var prodPath = path.resolve(__dirname);
+require("dotenv").config({ path: path.resolve(prodPath, "../.env") });
 var client = new Discord.Client({
     intents: [
         "Guilds",
@@ -21,11 +23,11 @@ var bot = {
     commands: new Discord.Collection,
     slashCommands: new Discord.Collection
 };
-var loadEvents = function (bot, reload) { return require("./handlers/events")(bot, reload); };
+var loadEvents = function (bot, reload) { return require(path.join(prodPath, "./handlers/events"))(bot, reload); };
 loadEvents(bot, false);
-var loadCommands = function (bot, reload) { return require("./handlers/commands")(bot, reload); };
+var loadCommands = function (bot, reload) { return require(path.join(prodPath, "./handlers/commands"))(bot, reload); };
 loadCommands(bot, false);
-var loadSlashCommands = function (bot, reload) { return require("./handlers/slashcommands")(bot, reload); };
+var loadSlashCommands = function (bot, reload) { return require(path.join(prodPath, "./handlers/slashcommands"))(bot, reload); };
 loadSlashCommands(bot, false);
 Play.setToken({
     spotify: {

@@ -2,15 +2,18 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var functions_1 = require("../util/functions");
 var Discord = require("discord.js");
+var path = require("path");
 module.exports = function (bot, reload) {
-    var events = (0, functions_1.getFiles)("./events/", ".js");
+    var prodPath = path.resolve(__dirname, "..");
+    var eventsPath = path.join(prodPath, "events");
+    var events = (0, functions_1.getFiles)(eventsPath, ".js");
     if (events.length === 0) {
         console.log("No events to load");
     }
     events.forEach(function (f, i) {
         if (reload)
-            delete require.cache[require.resolve("../events/".concat(f))];
-        var event = require("../events/".concat(f));
+            delete require.cache[require.resolve("".concat(eventsPath, "/").concat(f))];
+        var event = require("".concat(eventsPath, "/").concat(f));
         bot.events.set(event.name, event);
         console.log("Event: \u001B[33m ".concat(event.name, " \u001B[0m ~ \u001B[32m Loaded \u001B[0m"));
     });

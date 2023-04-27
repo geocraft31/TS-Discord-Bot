@@ -1,7 +1,11 @@
 import Discord = require("discord.js")
 import Play = require("play-dl")
+import path = require("path")
 
-require("dotenv").config({path: "./../.env"})
+const prodPath = path.resolve(__dirname)
+
+require("dotenv").config({path: path.resolve(prodPath, "../.env")})
+
 
 const client = new Discord.Client({
     intents: [
@@ -22,14 +26,13 @@ let bot = {
     commands: new Discord.Collection,
     slashCommands: new Discord.Collection
 }
-
-const loadEvents = (bot, reload: boolean) => require("./handlers/events")(bot, reload)
+const loadEvents = (bot, reload: boolean) => require(path.join(prodPath, "./handlers/events"))(bot, reload)
 loadEvents(bot, false)
 
-const loadCommands = (bot, reload: boolean) => require("./handlers/commands")(bot, reload)
+const loadCommands = (bot, reload: boolean) => require(path.join(prodPath, "./handlers/commands"))(bot, reload)
 loadCommands(bot, false)
 
-const loadSlashCommands = (bot, reload: boolean) => require("./handlers/slashcommands")(bot, reload)
+const loadSlashCommands = (bot, reload: boolean) => require(path.join(prodPath, "./handlers/slashcommands"))(bot, reload)
 loadSlashCommands(bot, false)
 
 Play.setToken({
