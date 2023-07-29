@@ -23,13 +23,14 @@ module.exports = {
             ({ prefix } = bot)
         }
 
-        const categories = fs.readdirSync("commands")
+        const categories = fs.readdirSync("./prod/commands")
+        console.log(categories)
         const commands = []
         const data = {}
 
         categories.forEach(category => {
             data[category] = []
-            getFiles(`./commands/${category}`, ".js").forEach(file => {
+            getFiles(`./prod/commands/${category}`, ".js").forEach(file => {
                 let command = require(`../../commands/${category}/${file}`)
                 if (command.devOnly)
                     return

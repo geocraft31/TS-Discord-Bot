@@ -36,30 +36,41 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Builder = require("@discordjs/builders");
-var functions_1 = require("../../util/functions");
 module.exports = {
-    name: "leave",
-    category: "music",
+    name: "count",
+    category: "troll",
     permissions: [],
     alias: [],
-    description: "Removes the bot from the voice channel",
-    example: "leave",
-    devOnly: false,
-    run: function (bot, message) { return __awaiter(void 0, void 0, void 0, function () {
-        var guildID, GuildAudio, embed;
-        return __generator(this, function (_a) {
-            guildID = message.guildId;
-            GuildAudio = bot.audio.get(guildID);
-            (0, functions_1.disconectBot)(bot, guildID);
-            embed = new Builder.EmbedBuilder();
-            embed.setTitle("I left the voice channel");
-            embed.setAuthor({ name: "Disconnected" });
-            embed.setColor(15548997);
-            bot.client.channels.fetch(GuildAudio.textChannelID).then(function (channel) {
-                channel.send({ embeds: [embed] });
-            });
-            return [2];
+    description: "Counts to 1 million",
+    example: "count",
+    devOnly: true,
+    run: function (bot, message, args) { return __awaiter(void 0, void 0, void 0, function () {
+        var i, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    message.delete();
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 6, , 7]);
+                    i = 1;
+                    _b.label = 2;
+                case 2:
+                    if (!(i <= Number(args[0]))) return [3, 5];
+                    return [4, message.channel.send("".concat(i))];
+                case 3:
+                    _b.sent();
+                    _b.label = 4;
+                case 4:
+                    i++;
+                    return [3, 2];
+                case 5: return [3, 7];
+                case 6:
+                    _a = _b.sent();
+                    message.channel.send("You didn't type a number");
+                    return [3, 7];
+                case 7: return [2];
+            }
         });
     }); }
 };

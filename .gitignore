@@ -2,5 +2,6 @@ node_modules/
 package-lock.json
 .vscode/
 .env
-.bat
+Start.bat
 .mp3
+test.ps1

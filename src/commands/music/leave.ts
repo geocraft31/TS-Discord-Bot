@@ -9,7 +9,7 @@ module.exports = {
     category: "music",
     permissions: [],
     alias: [],
-    description: "Removes the bot from th voice channel",
+    description: "Removes the bot from the voice channel",
     example: "leave",
     devOnly: false,
     run: async (bot: Bot, message: Discord.Message) => {

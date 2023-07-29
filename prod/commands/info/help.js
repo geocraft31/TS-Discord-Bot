@@ -58,12 +58,13 @@ module.exports = {
             else {
                 (prefix = bot.prefix);
             }
-            categories = fs.readdirSync("commands");
+            categories = fs.readdirSync("./prod/commands");
+            console.log(categories);
             commands = [];
             data = {};
             categories.forEach(function (category) {
                 data[category] = [];
-                (0, functions_1.getFiles)("./commands/".concat(category), ".js").forEach(function (file) {
+                (0, functions_1.getFiles)("./prod/commands/".concat(category), ".js").forEach(function (file) {
                     var command = require("../../commands/".concat(category, "/").concat(file));
                     if (command.devOnly)
                         return;

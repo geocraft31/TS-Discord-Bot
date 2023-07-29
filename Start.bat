@@ -1,3 +1,5 @@
 @echo off
 set typescriptIndexPath=%~dp0
-cmd /k "cd /d %typescriptIndexPath% & node prod/index.js"
+echo %typescriptIndexPath%
+cd /d %typescriptIndexPath% & node prod/index.js
+exit 0
